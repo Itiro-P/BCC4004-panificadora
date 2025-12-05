@@ -6,8 +6,8 @@
  * - LCD D4-D7: PD4-PD7 (Pinos Digitais 4, 5, 6, 7)
  * - LCD RS:    PB0 (Pino Digital 8)
  * - LCD E:     PB1 (Pino Digital 9)
- * - Motor:     PD3 (Pino Digital 3)
- * - Resistência: PD2 (Pino Digital 2)
+ * - Motor:     PD2 (Pino Digital 3)
+ * - Resistência: PD3 (Pino Digital 2)
  * - Buzzer:    PC1 (Pino Analógico A1 usado como Digital)
  * - Botão Sel: PC2 (Pino Analógico A2)
  * - Botão Up:  PC3 (Pino Analógico A3)
@@ -77,15 +77,15 @@ long map(long x, long in_min, long in_max, long out_min, long out_max);
 
 void setup() {
   // 1. Configuração de Portas (DDRx)
-  DDRD |= 0xFC;  // Pinos 2-7 como saída (PD2-PD7)
+  DDRD |= 0xFC;  // Pinos 2-7 como saída (PD3-PD7)
   DDRB |= 0x03;  // Pinos 8-9 (PB0, PB1) como saída (RS, E)
   DDRC |= 0x02;  // PC1 (Buzzer) como saída
   DDRC &= ~0x1C; // PC2-PC4 como entrada (botões)
 
   // 2. Estado Inicial
   PORTC |= 0x1C;  // Pull-up nos botões (PC2-PC4)
-  PORTD &= ~(1 << PD2); // Resistência OFF
-  PORTD &= ~(1 << PD3); // Motor OFF
+  PORTD &= ~(1 << PD3); // Resistência OFF
+  PORTD &= ~(1 << PD2); // Motor OFF
   PORTC &= ~(1 << PC1); // Buzzer OFF
 
   // 3. Configuração do ADC
@@ -249,7 +249,7 @@ void loop() {
         botaoProcessado = false;
         
         cmd_LCD(0x01, 0);
-        PORTD |= (1 << PD3); // Liga Motor
+        PORTD |= (1 << PD2); // Liga Motor
       }
       break;
 
@@ -336,21 +336,21 @@ void gerencia_fase(const char* titulo) {
     } else {
       // Transição de fase
       if (estadoAtual == RODANDO_SOVA) {
-        PORTD &= ~(1 << PD3); // Desliga Motor
+        PORTD &= ~(1 << PD2); // Desliga Motor
         estadoAtual = RODANDO_CRESCIMENTO;
         tempoRestanteSegundos = tempoCrescer * 60UL;
         contadorSegundos = 0;
         cmd_LCD(0x01, 0);
       }
       else if (estadoAtual == RODANDO_CRESCIMENTO) {
-        PORTD |= (1 << PD2); // Liga Resistência (início do ASSAR)
+        PORTD |= (1 << PD3); // Liga Resistência (início do ASSAR)
         estadoAtual = RODANDO_ASSAR;
         tempoRestanteSegundos = tempoAssar * 60UL;
         contadorSegundos = 0;
         cmd_LCD(0x01, 0);
       }
       else if (estadoAtual == RODANDO_ASSAR) {
-        PORTD &= ~(1 << PD2); // Desliga Resistência
+        PORTD &= ~(1 << PD3); // Desliga Resistência
         estadoAtual = FINALIZADO;
         cmd_LCD(0x01, 0);
         lcd_string("PAO PRONTO!");
@@ -415,7 +415,6 @@ void inic_LCD_4bits() // sequência ditada pelo fabricante do HD44780
     pulso_enable(); // habilitação respeitando os tempos de resposta do LCD
     _delay_ms(5);
     pulso_enable();
-    _delay_us(200);
     pulso_enable(); /*até aqui ainda é uma interface de 8 bits.*/
 
     // interface de 4 bits, deve ser enviado duas vezes (a outra está abaixo)
