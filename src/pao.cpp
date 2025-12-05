@@ -55,9 +55,9 @@ unsigned long tempoRestanteSegundos = 0;
 unsigned int contadorMs = 0;
 
 // Tempos padrão (em minutos)
-int tempoSova = 25;
-int tempoCrescer = 90;
-int tempoAssar = 40;
+int tempoSova = 1; // 25
+int tempoCrescer = 1; // 90
+int tempoAssar = 1; // 40
 int temperatura = 25;
 
 // Controle de botões
@@ -157,17 +157,17 @@ void loop() {
   if (!emExecucao && debounceCounter == 0 && !botaoProcessado) {
     if (!(PINC & (1 << PC2))) {
       btn = 1;
-      debounceCounter = 500; // 500ms debounce
+      debounceCounter = 10; // 500ms debounce
       botaoProcessado = true;
     } 
     else if (!(PINC & (1 << PC3))) {
       btn = 2;
-      debounceCounter = 300;
+      debounceCounter = 10;
       botaoProcessado = true;
     }
     else if (!(PINC & (1 << PC4))) {
       btn = 3;
-      debounceCounter = 300;
+      debounceCounter = 10;
       botaoProcessado = true;
     }
   }
@@ -188,7 +188,6 @@ void loop() {
         while (!(PINC & (1 << PC2))) {
           _delay_ms(10);
         }
-        _delay_ms(200);
         
         estadoAtual = CONFIG_CRESCIMENTO;
         cmd_LCD(0x01, 0);
@@ -214,7 +213,6 @@ void loop() {
         while (!(PINC & (1 << PC2))) {
           _delay_ms(10);
         }
-        _delay_ms(200);
         
         estadoAtual = CONFIG_ASSAR;
         cmd_LCD(0x01, 0);
@@ -236,11 +234,10 @@ void loop() {
         atualiza_display_config();
       }
       else if (btn == 1) {
-        // Iniciar Ciclo - AGUARDA BOTÃO SER SOLTO
+        // Iniciar Ciclo
         while (!(PINC & (1 << PC2))) {
           _delay_ms(10); // Aguarda botão ser solto
         }
-        _delay_ms(300); // Aguarda estabilizar
         
         estadoAtual = RODANDO_SOVA;
         tempoRestanteSegundos = tempoSova * 60UL;
@@ -293,7 +290,6 @@ int lerTemperatura() {
   
   int leitura = ADC;
   
-  // Conversão baseada na tabela: 29C(154) a 120C(585)
   int temp = map(leitura, 150, 600, 29, 120);
   
   // Limita valores
@@ -446,8 +442,8 @@ void lcd_set_cursor(int x, int y) {
 }
 
 void exibe_tempo(unsigned long segundos) {
-  int h = segundos / 3600;
-  int m = (segundos % 3600) / 60;
+  int h = segundos / 60;
+  int m = (segundos - h*60);
   char buf[4];
   
   if(h < 10) cmd_LCD('0', 1);
